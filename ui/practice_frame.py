@@ -28,6 +28,7 @@ class PracticeFrame(ttk.Frame):
         self._session: Optional[PracticeSession] = None
         self._timer_id: Optional[str] = None
         self._feedback_showing: bool = False
+        self._finishing: bool = False
 
         self._build_ui()
 
@@ -111,6 +112,7 @@ class PracticeFrame(ttk.Frame):
         self._session = session
         self._session.start()
         self._feedback_showing = False
+        self._finishing = False
 
         # Reset UI
         self.feedback_label.configure(text="")
@@ -118,6 +120,7 @@ class PracticeFrame(ttk.Frame):
         self.answer_var.set("")
         self.answer_entry.configure(state="normal")
         self.submit_btn.configure(state="normal")
+        self.quit_btn.configure(state="normal")
         self.answer_entry.focus_set()
 
         # Show first question
@@ -130,7 +133,7 @@ class PracticeFrame(ttk.Frame):
 
     def _show_question(self, q) -> None:
         """Display the given question."""
-        if q is None:
+        if q is None or self._session is None:
             return
         self.question_label.configure(text=q.display_text)
         current, total = self._session.progress
@@ -214,9 +217,12 @@ class PracticeFrame(ttk.Frame):
 
     def _start_timer_tick(self) -> None:
         """Start the 1-second timer tick (for display only)."""
-        if self._session is None or self._session.is_complete:
+        if self._session is None or self._finishing:
             return
+        # Always update display first — it may schedule _finish_session
         self._update_timer_display()
+        if self._session.is_complete:
+            return
         self._timer_id = self.after(1000, self._start_timer_tick)
 
     def _update_timer_display(self) -> None:
@@ -247,6 +253,7 @@ class PracticeFrame(ttk.Frame):
     def _on_quit_click(self) -> None:
         """User manually ends the session early."""
         if self._session and not self._session.is_complete:
+            self.quit_btn.configure(state="disabled")
             self._finish_session()
 
     def _finish_session(self) -> None:
@@ -255,18 +262,23 @@ class PracticeFrame(ttk.Frame):
             self.after_cancel(self._timer_id)
             self._timer_id = None
 
-        # Prevent duplicate finish calls
-        if self._session is None or self._session.is_complete:
+        # Prevent duplicate finish calls (use _finishing flag because
+        # advance()/check_timed_expiry() may have already set _finished)
+        if self._session is None or self._finishing:
             return
 
+        self._finishing = True
         self._session.mark_finished()
 
         self.answer_entry.configure(state="disabled")
         self.submit_btn.configure(state="disabled")
+        self.quit_btn.configure(state="disabled")
         self.question_label.configure(text="练习结束！")
         self.feedback_label.configure(text="")
         self.countdown_label.configure(text="")
         self.progress_label.configure(text="")
         self.timer_label.configure(text="")
 
-        self.after(500, lambda: self.on_session_end(self._session))
+        # Capture session reference to avoid stale closure if self._session changes
+        finished_session = self._session
+        self.after(500, lambda: self.on_session_end(finished_session))

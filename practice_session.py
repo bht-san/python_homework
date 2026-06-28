@@ -131,15 +131,12 @@ class PracticeSession:
 
     @property
     def is_complete(self) -> bool:
-        """Whether the session has finished."""
+        """Whether the session has finished (pure check, no side effects)."""
         if self._finished:
             return True
-        # Also check in case advance() wasn't called
         if self.mode == MODE_TIMED and self.elapsed_seconds >= self.time_limit:
-            self._finished = True
             return True
         if self._current_index >= len(self.active_questions):
-            self._finished = True
             return True
         return False
 
