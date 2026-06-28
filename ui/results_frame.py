@@ -28,47 +28,27 @@ class ResultsFrame(ttk.Frame):
         self._build_ui()
 
     def _build_ui(self):
-        # ── Title ──
-        title = ttk.Label(self, text="练习记录", font=FONT_TITLE)
-        title.pack(pady=(20, 10))
+        # ── Bottom buttons (pack first → reserved at bottom) ──
+        btn_frame = ttk.Frame(self)
+        btn_frame.pack(side="bottom", fill="x", padx=40, pady=(5, 15))
 
-        # ── Summary area ──
-        self.summary_frame = ttk.Frame(self)
-        self.summary_frame.pack(fill="x", padx=60, pady=10)
-
-        self.score_label = tk.Label(
-            self.summary_frame, text="", font=FONT_SCORE, fg=COLOR_TEXT,
+        retry_btn = ttk.Button(
+            btn_frame, text="🔄 再来一组", command=self.on_retry,
         )
-        self.score_label.pack(pady=5)
+        retry_btn.pack(side="left", padx=10)
 
-        self.accuracy_label = tk.Label(
-            self.summary_frame, text="", font=FONT_RESULT, fg=COLOR_TEXT,
+        self.print_btn = ttk.Button(
+            btn_frame, text="🖨 打印错题",
+            command=self._on_print_wrong,
+            state="disabled",
         )
-        self.accuracy_label.pack(pady=5)
+        self.print_btn.pack(side="left", padx=10)
 
-        self.time_label = tk.Label(
-            self.summary_frame, text="", font=FONT_BODY, fg=COLOR_TEXT,
-        )
-        self.time_label.pack(pady=5)
-
-        # Stars
-        self.stars_label = tk.Label(
-            self.summary_frame, text="", font=FONT_SCORE, fg="#f39c12",
-        )
-        self.stars_label.pack(pady=5)
-
-        # Separator
-        ttk.Separator(self, orient="horizontal").pack(fill="x", padx=40, pady=10)
-
-        # ── Wrong questions review ──
-        review_title = ttk.Label(self, text="错题回顾", font=FONT_RESULT)
-        review_title.pack(pady=(5, 5))
-
-        # Scrollable frame for wrong questions
+        # ── Scrollable wrong-question list (fills remaining space) ──
         container = ttk.Frame(self)
-        container.pack(fill="both", expand=True, padx=40, pady=(0, 10))
+        container.pack(side="top", fill="both", expand=True, padx=40, pady=(0, 5))
 
-        self.review_canvas = tk.Canvas(container, height=200)
+        self.review_canvas = tk.Canvas(container, height=80)
         scrollbar = ttk.Scrollbar(
             container, orient="vertical", command=self.review_canvas.yview,
         )
@@ -83,26 +63,46 @@ class ResultsFrame(ttk.Frame):
         self.review_canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # No wrong questions label (shown when applicable)
         self.no_wrong_label = ttk.Label(
             self.review_inner, text="", font=FONT_BODY,
         )
 
-        # ── Action buttons ──
-        btn_frame = ttk.Frame(self)
-        btn_frame.pack(pady=15)
+        # ── Wrong questions review title ──
+        review_title = ttk.Label(self, text="错题回顾", font=FONT_RESULT)
+        review_title.pack(side="top", pady=(0, 0))
 
-        retry_btn = ttk.Button(
-            btn_frame, text="🔄 再来一组", command=self.on_retry,
+        # ── Separator ──
+        ttk.Separator(self, orient="horizontal").pack(
+            side="top", fill="x", padx=40, pady=(0, 5),
         )
-        retry_btn.pack(side="left", padx=10)
 
-        self.print_btn = ttk.Button(
-            btn_frame, text="🖨 打印错题",
-            command=self._on_print_wrong,
-            state="disabled",
+        # ── Summary area ──
+        self.summary_frame = ttk.Frame(self)
+        self.summary_frame.pack(side="top", fill="x", padx=60, pady=(0, 5))
+
+        self.score_label = tk.Label(
+            self.summary_frame, text="", font=FONT_SCORE, fg=COLOR_TEXT,
         )
-        self.print_btn.pack(side="left", padx=10)
+        self.score_label.pack(pady=2)
+
+        self.accuracy_label = tk.Label(
+            self.summary_frame, text="", font=FONT_RESULT, fg=COLOR_TEXT,
+        )
+        self.accuracy_label.pack(pady=2)
+
+        self.time_label = tk.Label(
+            self.summary_frame, text="", font=FONT_BODY, fg=COLOR_TEXT,
+        )
+        self.time_label.pack(pady=2)
+
+        self.stars_label = tk.Label(
+            self.summary_frame, text="", font=FONT_SCORE, fg="#f39c12",
+        )
+        self.stars_label.pack(pady=2)
+
+        # ── Title ──
+        title = ttk.Label(self, text="练习记录", font=FONT_TITLE)
+        title.pack(side="top", pady=(20, 5))
 
     # ── Public API ──
 

@@ -116,6 +116,7 @@ class PracticeFrame(ttk.Frame):
         self.feedback_label.configure(text="")
         self.countdown_label.configure(text="")
         self.answer_var.set("")
+        self.answer_entry.configure(state="normal")
         self.submit_btn.configure(state="normal")
         self.answer_entry.focus_set()
 
